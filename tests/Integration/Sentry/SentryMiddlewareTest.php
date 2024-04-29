@@ -9,11 +9,14 @@ use GuzzleHttp\Promise\Promise;
 use GuzzleHttp\Promise\PromiseInterface;
 use PHPUnit\Framework\TestCase;
 use Sentry\Breadcrumb;
+use Sentry\Client;
 use Sentry\ClientBuilder;
 use Sentry\Event;
 use Sentry\Options;
 use Sentry\SentrySdk;
 use Sentry\State\Hub;
+use Sentry\Transport\Result;
+use Sentry\Transport\ResultStatus;
 use Sentry\Transport\TransportFactoryInterface;
 use Sentry\Transport\TransportInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,9 +52,13 @@ final class SentryMiddlewareTest extends TestCase
 
         $opts = new Options(array_merge($options, ['default_integrations' => true]));
 
-        $client = (new ClientBuilder($opts))
-            ->setTransportFactory($this->getTransportFactoryMock())
-            ->getClient();
+        $builder = new ClientBuilder($opts);
+        if (version_compare(Client::SDK_VERSION, '4.0.0', '<')) {
+            $builder->setTransportFactory($this->getTransportFactoryMock());
+        } else {
+            $builder->setTransport($this->getV4TransportMock());
+        }
+        $client = $builder->getClient();
 
         $hub = new Hub($client);
 
@@ -112,6 +119,23 @@ final class SentryMiddlewareTest extends TestCase
                         return new Promise(null, null);
                     }
                 };
+            }
+        };
+    }
+
+    private function getV4TransportMock(): TransportInterface
+    {
+        return new class() implements TransportInterface {
+            public function send(Event $event): Result
+            {
+                SentryMiddlewareTest::$collectedEvents->push($event);
+
+                return new Result(ResultStatus::success(), $event);
+            }
+
+            public function close(?int $timeout = null): Result
+            {
+                return new Result(ResultStatus::success());
             }
         };
     }

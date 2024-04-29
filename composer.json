@@ -39,7 +39,7 @@
     },
     "require-dev": {
         "symfony/var-dumper": "^6.0 || ^7.0",
-        "sentry/sentry-symfony": "^4.5",
+        "sentry/sentry-symfony": "^4.5 || ^5.0",
         "symfony/framework-bundle": "^6.0 || ^7.0",
         "nyholm/psr7": "^1.2",
         "doctrine/mongodb-odm": "^2.2",
