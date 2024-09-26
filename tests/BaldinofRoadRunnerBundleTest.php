@@ -31,6 +31,7 @@ use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouteCollectionBuilder;
+use Temporal\Client\WorkflowClientInterface;
 
 class BaldinofRoadRunnerBundleTest extends TestCase
 {
@@ -247,6 +248,7 @@ class BaldinofRoadRunnerBundleTest extends TestCase
 
         $registry = $c->get(WorkerRegistryInterface::class);
         $this->assertInstanceOf(TemporalWorker::class, $registry->getWorker(Environment\Mode::MODE_TEMPORAL));
+        $this->assertInstanceOf(WorkflowClientInterface::class, $c->get(WorkflowClientInterface::class));
     }
 
     /**
